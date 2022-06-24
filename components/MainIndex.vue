@@ -1,83 +1,88 @@
 <template>
-  <div>
-    <b-modal id="modal-prevent-closing" ref="modal" :title="(`${name}`)" @show="resetModal" @hidden="resetModal"
-      @ok="showdata">
-      <div class="card">
-        <img class="card-body" :src="(`${image}`)" />
-        <div class="card-footer">
-          <table class="table">
-            <thead>
-              <tr>
-                <th class="text-center">
-                  Abilities
-                </th>
-                <th class="text-center">
-                  Type
-                </th>
-                <th class="text-center">
-                  Move
-                </th>
-                <th class="text-center">
-                  Weight
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="align-middle">
-                  <li v-for="ability in abilities">{{ability}}</li>
-                </td>
-                <td class="align-middle">{{type}}</td>
-                <td class="align-middle">{{move}}</td>
-                <td class="align-middle text-center">{{weight}}</td>
-              </tr>
-            </tbody>
-          </table>
+  <LoaderWrapper :loading="$fetchState.pending">
+    <div>
+      <b-modal id="modal-prevent-closing" ref="modal" :title="(`${name}`)" @show="resetModal" @hidden="resetModal"
+        @ok="showdata">
+        <div class="card">
+          <img class="card-body" :src="(`${image}`)" />
+          <div class="card-footer">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="text-center">
+                    Abilities
+                  </th>
+                  <th class="text-center">
+                    Type
+                  </th>
+                  <th class="text-center">
+                    Move
+                  </th>
+                  <th class="text-center">
+                    Weight
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="align-middle">
+                    <li v-for="ability in abilities">{{ability}}</li>
+                  </td>
+                  <td class="align-middle">{{type}}</td>
+                  <td class="align-middle">{{move}}</td>
+                  <td class="align-middle text-center">{{weight}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
-    </b-modal>
-    <table class="table table-bordered">
-      <thead>
-        <tr>
-          <th class="align-middle text-center" scope="col">No</th>
-          <th class="text-center" scope="col">Image</th>
-          <th class="align-middle text-center" scope="col">Character Name</th>
-          <th class="align-middle text-center" scope="col">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(char_results, index) in results" :key="char_results">
-          <th class="align-middle col-md-1 text-center" scope="row">{{index+1}}</th>
-          <td><img class="img-size"
-              :src="(`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${currentData+index+1}.png`)" />
-          </td>
-          <td class="align-middle text-center">{{char_results.name}}</td>
-          <td class="align-middle text-center col-md-3">
-            <h5 class="btn btn-success">SAVE</h5>
-            <h5 class="btn btn-info" v-b-modal.modal-prevent-closing @click="showDetails((currentData+index+1))">DETAILS
-            </h5>
-          </td>
-        </tr>
-      </tbody>
-      <tfoot>
-        <tr>
-          <td colspan="4">
-            <div class="d-flex justify-content-center">
-              <div class="p-2">
-                <button @click="decrement" class="btn btn-warning">Previous</button>
+      </b-modal>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th class="align-middle text-center" scope="col">No</th>
+            <th class="text-center" scope="col">Image</th>
+            <th class="align-middle text-center" scope="col">Character Name</th>
+            <th class="align-middle text-center" scope="col">Actions</th>
+          </tr>
+        </thead>
+        <template>
+          <tbody>
+            <tr v-for="(char_results, index) in results" :key="char_results">
+              <th class="align-middle col-md-1 text-center" scope="row">{{index+1}}</th>
+              <td><img class="img-size"
+                  :src="(`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${currentData+index+1}.png`)" />
+              </td>
+              <td class="align-middle text-center">{{char_results.name}}</td>
+              <td class="align-middle text-center col-md-3">
+                <h5 class="btn btn-success" @click="createData(`${char_results.name}`)">SAVE</h5>
+                <h5 class="btn btn-info" v-b-modal.modal-prevent-closing @click="showDetails((currentData+index+1))">
+                  DETAILS
+                </h5>
+              </td>
+            </tr>
+          </tbody>
+        </template>
+        <tfoot>
+          <tr>
+            <td colspan="4">
+              <div class="d-flex justify-content-center">
+                <div class="p-2">
+                  <button @click="decrement" class="btn btn-warning">Previous</button>
+                </div>
+                <div class="p-2">
+                  <span class="form-control"> {{ from }} of {{ total }} </span>
+                </div>
+                <div class="p-2">
+                  <button @click="increment" class="btn btn-warning">Next</button>
+                </div>
               </div>
-              <div class="p-2">
-                <span class="form-control"> {{ from }} of {{ total }} </span>
-              </div>
-              <div class="p-2">
-                <button @click="increment" class="btn btn-warning">Next</button>
-              </div>
-            </div>
-          </td>
-        </tr>
-      </tfoot>
-    </table>
-  </div>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </LoaderWrapper>
 </template>
 
 <style scoped>
@@ -104,8 +109,8 @@
         limit: 10,
         char_id: 1,
         front_images: [],
-        // ---------------------- DETAILS ----------------------
         name: '',
+        // ---------------------- DETAILS ----------------------
         weight: '',
         image: '',
         type: '',
@@ -163,9 +168,21 @@
           axios(`${this.$axios.defaults.baseURL}/pokemon/${i}`).then(response => {
             this.front_images.push(response.data.sprites.other.home.front_default);
           })
-          console.log("biiingkai")
-          console.log(this.front_images)
         }
+      },
+      createData(names) {
+        var datajson = JSON.stringify({
+          name: names,
+        });
+        var config = {
+          method: "post",
+          url: 'http://127.0.0.1:8000/programming-languages/insert-user',
+          data: datajson
+        };
+        axios(config).then(response => {
+          console.log("whoaaps!")
+          console.log(response)
+        })
       },
       detailsData() {
         const baseURL = `${this.$axios.defaults.baseURL}/pokemon/${this.char_id}`;
